@@ -27,6 +27,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 *.pkl
+*.pth
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -104,6 +105,8 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.sg
+sg/
 env/
 venv/
 ENV/
