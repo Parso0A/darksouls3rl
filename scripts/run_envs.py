@@ -143,11 +143,8 @@ def main(env: str = "SoulsGymIudex-v0"):
                 for key in policy_net_state_dict:
                     target_net_state_dict[key] = policy_net_state_dict[key] * TAU + target_net_state_dict[key] * (1 - TAU)
                     target_net.load_state_dict(target_net_state_dict)
-                #obs = next_obs
             print("Current runtime: " + str(datetime.datetime.now() - start).split('.')[0])
     finally:
-        # with open('experience_buffer.pkl', 'wb') as f:
-        #     pickle.dump(experience_buffer, f)
         save_model(policy_net, target_net, 'model_checkpoint.pth')
         env.close()
         #plot()
