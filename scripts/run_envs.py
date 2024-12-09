@@ -56,7 +56,7 @@ def main(env: str = "SoulsGymIudex-v0"):
 
     optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
     memory = ReplayMemory(10000)
-
+    #policy_net.train()
 
     def select_action(state):
         global steps_done
@@ -111,7 +111,6 @@ def main(env: str = "SoulsGymIudex-v0"):
         # Compute Huber loss
         criterion = nn.SmoothL1Loss()
         loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
-
         optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_value_(policy_net.parameters(), 100)
@@ -123,18 +122,19 @@ def main(env: str = "SoulsGymIudex-v0"):
             state, info = env.reset()
             state = torch.tensor(state, device=device, dtype=torch.float32).unsqueeze(0)
             terminated, truncated = False, False
+            episode_reward = 0
             while not terminated and not truncated:
                 action = select_action(state)  #env.action_space.sample()
                 obs, reward, terminated, truncated, _ = env.step(action.item())
                 done = terminated or truncated
-                print( reward, obs)
+                #print( reward, obs)
                 if terminated:
                     next_state = None
                 else:
                     next_state = torch.tensor(obs, device=device, dtype=torch.float32).unsqueeze(0)
                 #store_experience(obs, action, reward, next_obs, done)
                 memory.push(state, action, next_state, reward)
-                
+                episode_reward += reward
                 state = next_state
                 optimize_model()
 
@@ -144,6 +144,9 @@ def main(env: str = "SoulsGymIudex-v0"):
                     target_net_state_dict[key] = policy_net_state_dict[key] * TAU + target_net_state_dict[key] * (1 - TAU)
                     target_net.load_state_dict(target_net_state_dict)
             print("Current runtime: " + str(datetime.datetime.now() - start).split('.')[0])
+            log_message = f"New best reward {episode_reward:0.1f}"
+            print(log_message)
+            logging.info(log_message)
     finally:
         save_model(policy_net, target_net, 'model_checkpoint.pth')
         env.close()
